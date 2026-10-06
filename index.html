@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sahakari Sankalan — prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F5F8; --surface:#FFFFFF; --ink:#14213D; --ink-2:#56627A; --line:#D8DDE6;
+  --crimson:#B3122E; --crimson-soft:#FBE9EC; --blue:#1D3F8F; --blue-soft:#E7ECF7;
+  --ok:#1F7A4D; --ok-soft:#E3F2EA; --warn:#9A5B00; --warn-soft:#FFF3DC;
+  --slip:#FFFDF6; --shadow:0 1px 0 rgba(20,33,61,.06);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1626; --surface:#18213A; --ink:#E8ECF4; --ink-2:#9AA6BF; --line:#2A3553;
+    --crimson:#F0566E; --crimson-soft:#3A1822; --blue:#8FA9F0; --blue-soft:#1E2A4C;
+    --ok:#5BC48E; --ok-soft:#153526; --warn:#F2B75A; --warn-soft:#3A2B10; --slip:#1E2740;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1626; --surface:#18213A; --ink:#E8ECF4; --ink-2:#9AA6BF; --line:#2A3553;
+  --crimson:#F0566E; --crimson-soft:#3A1822; --blue:#8FA9F0; --blue-soft:#1E2A4C;
+  --ok:#5BC48E; --ok-soft:#153526; --warn:#F2B75A; --warn-soft:#3A2B10; --slip:#1E2740;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Mukta","Noto Sans Devanagari",system-ui,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--surface);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1120px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.mark{width:34px;height:34px;flex:none}
+.brand b{display:block;font-size:17px;line-height:1.1}
+.brand small{color:var(--ink-2);font-size:13px}
+.roles{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:3px}
+.roles button{border:0;background:none;padding:6px 14px;border-radius:7px;font-weight:600;color:var(--ink-2)}
+.roles button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.date{font-size:13px;color:var(--ink-2)}
+main{max-width:1120px;margin:0 auto;padding:20px 16px 60px}
+.phone{max-width:430px;margin:0 auto}
+h1{font-size:26px;line-height:1.15;margin:0 0 4px;font-weight:700}
+h2{font-size:19px;margin:24px 0 10px;font-weight:700}
+h3{font-size:16px;margin:0 0 6px}
+.sub{color:var(--ink-2);margin:0 0 16px;font-size:15px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+.amt{font-weight:700;white-space:nowrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:600}
+.btn.primary{background:var(--crimson);border-color:var(--crimson);color:#fff}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.btn.ghost{background:none}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.block{width:100%;padding:13px;font-size:17px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--blue-soft);color:var(--blue)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--crimson-soft);color:var(--crimson)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+/* collector header */
+.collector-head{display:grid;gap:12px}
+.cash{margin-top:4px}
+.cash-bar{height:8px;border-radius:99px;background:var(--paper);border:1px solid var(--line);overflow:hidden}
+.cash-bar i{display:block;height:100%;background:var(--blue);transition:width .3s}
+.cash-bar i.hot{background:var(--crimson)}
+.switch{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 6px;background:var(--surface);font-weight:600;font-size:14px}
+.switch .knob{width:30px;height:18px;border-radius:99px;background:var(--ok);position:relative}
+.switch .knob::after{content:"";position:absolute;top:2px;left:14px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s}
+.switch.off .knob{background:var(--ink-2)}
+.switch.off .knob::after{left:2px}
+.search{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.members{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.member{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);width:100%;text-align:left}
+.member:hover{border-color:var(--ink-2)}
+.avatar{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;background:var(--blue-soft);color:var(--blue)}
+.member .meta{flex:1;min-width:0}
+.member .meta b{display:block}
+.done-tick{color:var(--ok);font-weight:700;font-size:13px}
+/* sheet */
+.sheet-wrap{position:fixed;inset:0;background:rgba(10,16,30,.5);display:none;align-items:flex-end;justify-content:center;z-index:40}
+.sheet-wrap.open{display:flex}
+.sheet{background:var(--surface);width:100%;max-width:460px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0px))}
+@media (min-width:700px){.sheet-wrap{align-items:center}.sheet{border-radius:18px}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{border:1px solid var(--line);background:var(--surface);padding:7px 12px;border-radius:999px;font-weight:600;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.money-in{display:flex;align-items:center;border:2px solid var(--ink);border-radius:12px;padding:6px 14px;margin:8px 0}
+.money-in span{font-size:22px;font-weight:600;color:var(--ink-2);margin-right:6px}
+.money-in input{border:0;background:none;font-size:34px;font-weight:700;width:100%;outline:none;padding:0}
+.quick{display:flex;gap:6px;flex-wrap:wrap}
+.quick button{border:1px dashed var(--line);background:none;border-radius:8px;padding:4px 10px;font-size:14px}
+.preview{background:var(--paper);border-radius:10px;padding:10px 12px;margin:12px 0;font-size:14px}
+.preview .row{padding:2px 0}
+/* the receipt slip */
+.slip{position:relative;background:var(--slip);border:1px solid var(--line);border-radius:4px;padding:20px 18px 22px;margin:6px 4px 14px;box-shadow:0 8px 24px rgba(20,33,61,.12)}
+.slip::before,.slip::after{content:"";position:absolute;left:0;right:0;height:10px;background:radial-gradient(circle at 6px 0,var(--surface) 5px,transparent 5.5px) repeat-x;background-size:12px 10px}
+.slip::before{top:-1px}
+.slip::after{bottom:-1px;transform:scaleY(-1)}
+.slip .coop{font-size:13px;text-align:center;color:var(--ink-2);border-bottom:1px dashed var(--line);padding-bottom:8px}
+.slip .big{font-size:44px;font-weight:800;text-align:center;letter-spacing:-.5px;line-height:1.1;margin:12px 0 2px}
+.slip .what{text-align:center;font-weight:600}
+.slip dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:14px;margin:14px 0 0}
+.slip dt{color:var(--ink-2)}
+.slip dd{margin:0;text-align:right;font-weight:600}
+.stamp{position:absolute;right:14px;top:58px;transform:rotate(-12deg);border:2px solid var(--ok);color:var(--ok);font-weight:800;font-size:13px;padding:2px 8px;border-radius:6px;opacity:.85}
+.stamp.q{border-color:var(--warn);color:var(--warn)}
+@media (prefers-reduced-motion:no-preference){.slip.enter{animation:print .5s cubic-bezier(.2,.8,.2,1)}}
+@keyframes print{from{transform:translateY(-18px);opacity:0;clip-path:inset(0 0 100% 0)}to{transform:none;opacity:1;clip-path:inset(0 0 0 0)}}
+.sms{background:var(--blue-soft);border-radius:14px 14px 14px 4px;padding:10px 12px;font-size:14px;margin:0 4px 14px}
+.sms small{display:block;color:var(--ink-2);font-size:12px;margin-bottom:2px}
+/* lists/tables */
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:10px 0;border-bottom:1px solid var(--line)}
+.list li:last-child{border-bottom:0}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th{text-align:left;font-weight:600;color:var(--ink-2);font-size:13px;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.num,th.num{text-align:right}
+tr:last-child td{border-bottom:0}
+/* denominations */
+.denoms{display:grid;grid-template-columns:1fr auto auto;gap:6px 10px;align-items:center;font-size:15px}
+.denoms input{width:72px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);text-align:right}
+/* admin */
+.admin-grid{display:grid;gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat b{display:block;font-size:26px;line-height:1.1}
+.stat span{font-size:13px;color:var(--ink-2)}
+.two{display:grid;gap:16px;grid-template-columns:minmax(0,3fr) minmax(0,2fr);margin-top:16px}
+@media (max-width:860px){.admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}
+.form{display:grid;gap:8px}
+.form label{font-size:13px;color:var(--ink-2);display:grid;gap:3px}
+.form input,.form select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:10px;font-weight:600;z-index:60;display:none;max-width:90vw}
+.toast.show{display:block}
+.balance-hero{background:var(--ink);color:var(--surface);border-radius:16px;padding:18px}
+.balance-hero .muted{color:inherit;opacity:.7}
+.balance-hero b{font-size:36px;line-height:1.1;display:block}
+.acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.acc{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface)}
+.acc b{display:block;font-size:20px}
+.foot{max-width:1120px;margin:0 auto;padding:0 16px 30px;color:var(--ink-2);font-size:13px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.linkbtn{background:none;border:0;color:var(--blue);font-weight:600;padding:0;text-decoration:underline}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="var(--crimson)"/><path d="M9 23c3-1 5-4 8-4s5 3 8 4M11 15h12M17 9v10" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      <div><b>Sahakari Sankalan</b><small>Shree Gaurishankar Bachat tatha Rin Sahakari · demo</small></div>
+    </div>
+    <span class="date" id="bsdate"></span>
+    <div class="roles" role="group" aria-label="Switch view">
+      <button data-role="collector" aria-pressed="true">Collector</button>
+      <button data-role="member" aria-pressed="false">Member</button>
+      <button data-role="admin" aria-pressed="false">Admin</button>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+<div class="foot"><span>Prototype with sample data. Nothing here touches real money.</span><button class="linkbtn" id="reset">Reset demo data</button></div>
+<div class="sheet-wrap" id="sheetWrap" role="dialog" aria-modal="true"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+const KEY='sahakari-sankalan-v4';
+const TYPES={SAV:'Saving',LOAN:'Loan'};
+const BS_TODAY='Asoj 19, 2083 BS';
+const fmt=n=>'Rs. '+Math.round(n).toLocaleString('en-IN');
+const PRODUCTS={SAV:'Daily savings',LOAN:'Loan installment',CSAV:'Compulsory savings',RD:'Recurring deposit',FD:'Fixed deposit'};
+PRODUCTS.INTEREST='Interest credited';
+const FREQ={DAILY:'Daily kista',WEEKLY:'Weekly',MONTHLY:'Monthly'};
+const LABEL=Object.assign({BOTH:'Installment + compulsory savings'},PRODUCTS);
+
+function seed(){
+  return {
+    online:true, role:'collector', viewMember:'M-1042', seq:{C01:118},
+    collectors:[
+      {id:'C01',name:'Ramesh Thapa',route:'Ward 4 · Bazaar line',limit:200000,device:'Redmi 13C · bound',closed:false},
+      {id:'C02',name:'Sita Karki',route:'Ward 7 · Chowk',limit:200000,device:'Samsung A15 · bound',closed:true},
+      {id:'C03',name:'Bikash Rai',route:'Ward 2 · Hospital road',limit:150000,device:'Redmi 12 · bound',closed:false}
+    ],
+    members:[
+      {no:'M-1042',type:'SAV',name:'Laxmi Shrestha',biz:'Tea shop',phone:'98XXXXX412',route:'C01',sav:48650,loan:null,rd:{bal:36000,inst:3000,due:true},daily:500},
+      {no:'M-1057',type:'LOAN',name:'Hari Bahadur Magar',biz:'Hardware store',phone:'98XXXXX877',route:'C01',sav:0,loan:{amount:500000,out:420000,interest:4980,penalty:350,emi:21000,overdue:12,paid:8,total:30,arrears:21000,rate:14,freq:'MONTHLY'},csav:{bal:24000,inst:1000,due:true},rd:null,daily:21000},
+      {no:'M-1063',type:'SAV',name:'Kamala Gurung',biz:'Vegetable stall',phone:'98XXXXX130',route:'C01',sav:9820,loan:null,rd:{bal:12000,inst:1000,due:false},daily:200},
+      {no:'M-1071',type:'LOAN',name:'Dipendra Yadav',biz:'Mobile repair',phone:'98XXXXX559',route:'C01',sav:0,loan:{amount:100000,out:75000,interest:640,penalty:0,emi:5200,overdue:0,paid:6,total:24,arrears:0,rate:14,freq:'MONTHLY'},csav:{bal:6000,inst:500,due:false},rd:null,daily:5200},
+      {no:'M-1079',type:'LOAN',name:'Ram Kumar Chaudhary',biz:'Momo stall',phone:'98XXXXX046',route:'C01',sav:0,loan:{amount:60000,out:41200,interest:310,penalty:0,emi:600,overdue:0,paid:38,total:120,arrears:0,rate:14,freq:'DAILY'},csav:{bal:1900,inst:50,due:false},rd:null,daily:600},
+      {no:'M-1088',type:'SAV',name:'Sunita Tamang',biz:'Tailoring',phone:'98XXXXX204',route:'C01',sav:57210,loan:null,rd:{bal:60000,inst:5000,due:true},daily:500},
+      {no:'M-1094',type:'SAV',name:'Bishnu Prasad Adhikari',biz:'Pharmacy',phone:'98XXXXX761',route:'C01',sav:212480,loan:null,rd:null,daily:2000},
+      {no:'M-2011',type:'SAV',name:'Gita Basnet',biz:'Cosmetics',phone:'98XXXXX318',route:'C02',sav:22300,loan:null,rd:null,daily:300}
+    ],
+    entries:[
+      {rno:'INT-2083-06-30-1',member:'M-1042',product:'INTEREST',amount:712,collector:null,time:'Asoj 1',synced:true,reversed:false},
+      {rno:'INT-2083-06-30-2',member:'M-1094',product:'INTEREST',amount:3105,collector:null,time:'Asoj 1',synced:true,reversed:false},
+      {rno:'R-C01-0116',member:'M-1042',product:'SAV',amount:500,collector:'C01',time:'Yesterday 10:12',synced:true,reversed:false},
+      {rno:'R-C01-0117',member:'M-1094',product:'SAV',amount:2000,collector:'C01',time:'Yesterday 10:40',synced:true,reversed:false},
+      {rno:'R-C02-0341',member:'M-2011',product:'SAV',amount:300,collector:'C02',time:'Today 09:05',synced:true,reversed:false,today:true},
+      {rno:'R-C02-0342',member:'M-2011',product:'SAV',amount:300,collector:'C02',time:'Today 11:30',synced:true,reversed:false,today:true}
+    ],
+    closes:[
+      {collector:'C02',date:BS_TODAY,expected:41800,received:41300,status:'Pending',note:'Rs. 500 short — collector says note given as change'}
+    ],
+    tickets:[], accr:{runs:[], savPending:0}
+  };
+}
+let S;
+function load(){try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):seed();}catch(e){S=seed();}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+load();
+
+const $=s=>document.querySelector(s);
+const app=$('#app');
+$('#bsdate').textContent=BS_TODAY;
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),2600);}
+function member(no){return S.members.find(m=>m.no===no);}
+function coll(id){return S.collectors.find(c=>c.id===id);}
+function initials(n){return n.split(' ').map(p=>p[0]).slice(0,2).join('');}
+function todayEntries(cid){return S.entries.filter(e=>e.today&&e.collector===cid&&!e.reversed);}
+function cashInHand(cid){const c=coll(cid);if(c.closed)return 0;return todayEntries(cid).reduce((a,e)=>a+e.amount,0);}
+
+document.querySelectorAll('.roles button').forEach(b=>b.addEventListener('click',()=>{S.role=b.dataset.role;save();render();}));
+$('#reset').addEventListener('click',()=>{S=seed();save();render();toast('Demo data reset');});
+$('#sheetWrap').addEventListener('click',e=>{if(e.target.id==='sheetWrap')closeSheet();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet();});
+function openSheet(html){$('#sheet').innerHTML=html;$('#sheetWrap').classList.add('open');const f=$('#sheet').querySelector('input,button');if(f)f.focus();}
+function closeSheet(){$('#sheetWrap').classList.remove('open');}
+
+function render(){
+  document.querySelectorAll('.roles button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.role===S.role)));
+  if(S.role==='collector')renderCollector();else if(S.role==='member')renderMember();else renderAdmin();
+}
+
+/* ---------- COLLECTOR ---------- */
+let q='';let filt='ALL';
+function renderCollector(){
+  const c=coll('C01'); const cash=cashInHand('C01'); const pct=Math.min(100,cash/c.limit*100);
+  const pending=S.entries.filter(e=>e.collector==='C01'&&!e.synced).length;
+  const done=new Set(todayEntries('C01').map(e=>e.member));
+  const routeM=S.members.filter(m=>m.route==='C01');
+  const list=routeM.filter(m=>(filt==='ALL'||m.type===filt)&&(m.name.toLowerCase().includes(q.toLowerCase())||m.no.toLowerCase().includes(q.toLowerCase())));
+  app.innerHTML=`<div class="phone">
+    <div class="collector-head">
+      <div class="row between"><div><h1>Namaste, ${esc(c.name.split(' ')[0])}</h1><p class="sub" style="margin:0">${esc(c.route)}</p></div>
+        <button class="switch ${S.online?'':'off'}" id="net" aria-pressed="${S.online}"><span class="knob"></span>${S.online?'Online':'Offline'}</button></div>
+      <div class="panel">
+        <div class="row between"><span class="muted small">Cash in hand</span><span class="amt">${fmt(cash)} <span class="muted small" style="font-weight:400">of ${fmt(c.limit)} limit</span></span></div>
+        <div class="cash-bar cash" aria-hidden="true"><i class="${pct>80?'hot':''}" style="width:${pct}%"></i></div>
+        <div class="row between" style="margin-top:12px">
+          <span class="small">${todayEntries('C01').length} collections today${pending?` · <span class="pill warn">${pending} waiting to sync</span>`:` · <span class="pill ok"><span class="dot"></span>All synced</span>`}</span>
+          ${pending&&S.online?'<button class="btn" id="sync">Sync now</button>':''}
+        </div>
+      </div>
+      ${c.closed?`<div class="panel" style="border-color:var(--ok)"><b>Day closed.</b> <span class="muted">Waiting for branch approval. New collections open tomorrow.</span></div>`:''}
+    </div>
+    <h2>Members on your route</h2>
+    <div class="chips" role="group" aria-label="Filter by account type">${['ALL','SAV','LOAN'].map(t=>`<button class="chip" data-f="${t}" aria-pressed="${filt===t}">${t==='ALL'?'All':TYPES[t]+' holders'} (${t==='ALL'?routeM.length:routeM.filter(m=>m.type===t).length})</button>`).join('')}</div>
+    <input class="search" id="q" placeholder="Search name or member number" value="${esc(q)}" aria-label="Search members">
+    <ul class="members">${list.map(m=>{
+      const dues=[`<span class="pill ${m.type==='SAV'?'ok':''}">${TYPES[m.type]}</span>`]; if(m.loan&&m.loan.overdue)dues.push(`<span class="pill bad">Loan ${m.loan.overdue} days overdue</span>`); else if(m.loan)dues.push(`<span class="pill">EMI ${fmt(m.loan.emi)}</span>`);
+      if(m.csav&&m.csav.due)dues.push(`<span class="pill warn">Compulsory savings due</span>`);
+      if(m.rd&&m.rd.due)dues.push(`<span class="pill warn">RD due</span>`);
+      return `<li><button class="member" data-m="${m.no}" ${c.closed?'disabled':''}><span class="avatar">${initials(m.name)}</span><span class="meta"><b>${esc(m.name)}</b><span class="muted small">${m.no} · ${esc(m.biz)} · ${m.type==='LOAN'?'installment '+fmt(m.loan.emi)+' + CS '+fmt(m.csav.inst):'usual '+fmt(m.daily)}</span><span class="row" style="flex-wrap:wrap;gap:4px;margin-top:4px">${dues.join('')}</span></span>${done.has(m.no)?'<span class="done-tick">✓ Done</span>':''}</button></li>`;}).join('')||'<li class="muted">No member matches that search. Check the spelling or member number.</li>'}</ul>
+    <h2>Today's collections</h2>
+    <div class="panel">${todayEntries('C01').length?`<ul class="list">${todayEntries('C01').slice().reverse().map(e=>`<li class="row between"><span><b>${esc(member(e.member).name)}</b><br><span class="muted small">${PRODUCTS[e.product]} · ${e.rno} · ${e.time}</span></span><span style="text-align:right"><span class="amt">${fmt(e.amount)}</span><br>${e.synced?'<span class="pill ok">Synced</span>':'<span class="pill warn">Queued</span>'}</span></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">No collections yet. Tap a member above to start.</p>'}</div>
+    <div style="margin-top:16px"><button class="btn dark block" id="close" ${c.closed||!todayEntries('C01').length?'disabled':''}>Close day</button></div>
+  </div>`;
+  $('#q').addEventListener('input',e=>{q=e.target.value;const pos=e.target.selectionStart;renderCollector();const n=$('#q');n.focus();n.setSelectionRange(pos,pos);});
+  $('#net').addEventListener('click',()=>{S.online=!S.online;if(S.online)syncAll(true);save();renderCollector();toast(S.online?'Back online':'Offline — collections will queue on this phone');});
+  const sb=$('#sync'); if(sb)sb.addEventListener('click',()=>{syncAll();renderCollector();});
+  document.querySelectorAll('[data-f]').forEach(b=>b.addEventListener('click',()=>{filt=b.dataset.f;renderCollector();}));
+  document.querySelectorAll('.member').forEach(b=>b.addEventListener('click',()=>collectSheet(b.dataset.m)));
+  $('#close').addEventListener('click',closeDaySheet);
+}
+function syncAll(silent){const p=S.entries.filter(e=>!e.synced);p.forEach(e=>e.synced=true);save();if(p.length)toast(`${p.length} queued ${p.length===1?'entry':'entries'} synced · SMS receipts sent`);else if(!silent)toast('Nothing to sync');}
+
+function collectSheet(no){
+  const m=member(no); let product=m.type==='LOAN'?'BOTH':'SAV'; let amount=m.type==='LOAN'?m.loan.emi+m.csav.inst:m.daily;
+  const products=m.type==='LOAN'?['BOTH','LOAN','CSAV']:['SAV',m.rd?'RD':null,'FD'].filter(Boolean);
+  function preview(){
+    if(product==='SAV')return `<div class="row between"><span>Savings balance after</span><b>${fmt(m.sav+amount)}</b></div>`;
+    if(product==='RD')return `<div class="row between"><span>Monthly installment</span><b>${fmt(m.rd.inst)}</b></div><div class="row between"><span>RD balance after</span><b>${fmt(m.rd.bal+amount)}</b></div>${amount!==m.rd.inst?'<div class="small" style="color:var(--warn)">Amount must equal the installment.</div>':''}`;
+    if(product==='CSAV')return `<div class="row between"><span>Compulsory savings after</span><b>${fmt(m.csav.bal+amount)}</b></div><div class="small muted">Locked until the loan is fully repaid.</div>`;
+    if(product==='BOTH'){const cs=Math.min(amount,m.csav.inst),sp=split(m.loan,amount-cs);return `<div class="row between"><span>Compulsory savings</span><span>${fmt(cs)}</span></div><div class="row between"><span>Loan: penalty + interest</span><span>${fmt(sp.penalty+sp.interest)}</span></div><div class="row between"><span>Loan: principal</span><span>${fmt(sp.principal)}</span></div><div class="row between" style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><span>Loan outstanding after</span><b>${fmt(m.loan.out-sp.principal)}</b></div>`;}
+    if(product==='FD')return `<div class="small">Held as pending until the branch approves and issues the FD certificate.</div>`;
+    const sp=split(m.loan,amount);
+    return `<div class="row between"><span>Penalty</span><span>${fmt(sp.penalty)}</span></div><div class="row between"><span>Interest</span><span>${fmt(sp.interest)}</span></div><div class="row between"><span>Principal</span><span>${fmt(sp.principal)}</span></div><div class="row between" style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><span>Loan outstanding after</span><b>${fmt(m.loan.out-sp.principal)}</b></div>`;
+  }
+  function valid(){return amount>0&&!(product==='BOTH'&&amount<m.csav.inst)&&!(product==='RD'&&amount!==m.rd.inst)&&!(product==='FD'&&amount<10000);}
+  function clearAmt(){return m.loan&&m.loan.arrears>0?Math.ceil(m.loan.arrears+m.loan.penalty):0;}
+  function quickAmts(){if(product==='BOTH')return[m.loan.emi+m.csav.inst,...(clearAmt()?[clearAmt()+m.csav.inst]:[])];if(product==='CSAV')return[m.csav.inst];if(product==='LOAN')return[m.loan.emi,...(clearAmt()?[clearAmt()]:[]),Math.round(m.loan.emi/2)];if(product==='RD')return[m.rd.inst];if(product==='FD')return[25000,50000,100000];return[m.daily,100,500,1000,2000];}
+  function draw(){
+    openSheet(`<div class="row between"><div class="row"><span class="avatar">${initials(m.name)}</span><div><b>${esc(m.name)}</b><br><span class="muted small">${m.no} · ${TYPES[m.type]} holder · ${esc(m.phone)}</span></div></div><button class="btn ghost" id="x" aria-label="Close">✕</button></div>
+      <div class="chips" role="group" aria-label="Product">${products.map(p=>`<button class="chip" data-p="${p}" aria-pressed="${p===product}">${LABEL[p]}</button>`).join('')}</div>
+      <label class="small muted" for="amt">Amount received</label>
+      <div class="money-in"><span>Rs.</span><input id="amt" inputmode="numeric" value="${amount||''}" aria-label="Amount in rupees"></div>
+      <div class="quick">${[...new Set(quickAmts())].map(a=>`<button data-a="${a}">${fmt(a)}</button>`).join('')}</div>
+      ${(product==='BOTH'||product==='LOAN')&&clearAmt()?`<div class="small" style="color:var(--crimson);margin-top:8px">Overdue ${fmt(m.loan.arrears)} + penalty ${fmt(m.loan.penalty)}, ${m.loan.overdue} days late. ${fmt(clearAmt()+(product==='BOTH'?m.csav.inst:0))} clears it.</div>`:''}
+      <div class="preview" id="pv">${preview()}</div>
+      ${product==='FD'&&amount<10000?'<div class="small" style="color:var(--warn);margin-bottom:8px">Minimum fixed deposit is Rs. 10,000.</div>':''}
+      <button class="btn primary block" id="ok" ${valid()?'':'disabled'}>Confirm ${fmt(amount||0)}</button>
+      <p class="small muted" style="text-align:center;margin:8px 0 0">${S.online?'Member gets an SMS receipt right away.':'Offline: receipt is saved on this phone and the SMS goes out on sync.'}</p>`);
+    $('#x').onclick=closeSheet;
+    document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{product=b.dataset.p;amount=quickAmts()[0];draw();});
+    document.querySelectorAll('.quick button').forEach(b=>b.onclick=()=>{amount=+b.dataset.a;draw();});
+    const inp=$('#amt'); inp.oninput=()=>{amount=parseInt(inp.value.replace(/\D/g,''))||0;$('#pv').innerHTML=preview();const ok=$('#ok');ok.disabled=!valid();ok.textContent='Confirm '+fmt(amount);};
+    $('#ok').onclick=()=>commit(m,product,amount);
+  }
+  draw();
+}
+function split(loan,amt){const penalty=Math.min(amt,loan.penalty);let r=amt-penalty;const interest=Math.min(r,loan.interest);r-=interest;return{penalty,interest,principal:Math.min(r,loan.out)};}
+
+function commit(m,product,amount){
+  const c=coll('C01');
+  if(cashInHand('C01')+amount>c.limit){toast('Cash limit reached. Deposit cash at the branch before collecting more.');return;}
+  S.seq.C01=(S.seq.C01||118)+1; const rno='R-C01-'+String(S.seq.C01).padStart(4,'0');
+  const d=new Date(); const time='Today '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  const parts=product==='BOTH'?[{p:'CSAV',a:Math.min(amount,m.csav.inst)},{p:'LOAN',a:amount-Math.min(amount,m.csav.inst)}].filter(x=>x.a>0):[{p:product,a:amount}];
+  let lines='',sms=[];
+  parts.forEach(x=>{
+    const r=parts.length>1&&x.p==='CSAV'?rno+'-CS':rno;
+    if(x.p==='SAV'){m.sav+=x.a;lines+=`<dt>Savings balance</dt><dd>${fmt(m.sav)}</dd>`;sms.push(`Bachat ${fmt(x.a)}, mauzdat ${fmt(m.sav)}`);}
+    else if(x.p==='RD'){m.rd.bal+=x.a;m.rd.due=false;lines+=`<dt>RD balance</dt><dd>${fmt(m.rd.bal)}</dd>`;sms.push(`RD ${fmt(x.a)}, mauzdat ${fmt(m.rd.bal)}`);}
+    else if(x.p==='CSAV'){m.csav.bal+=x.a;m.csav.due=false;lines+=`<dt>Compulsory savings</dt><dd>${fmt(x.a)} · bal. ${fmt(m.csav.bal)}</dd>`;sms.push(`Anivarya bachat ${fmt(x.a)}, mauzdat ${fmt(m.csav.bal)}`);}
+    else if(x.p==='LOAN'){const sp=split(m.loan,x.a);m.loan.penalty-=sp.penalty;m.loan.interest-=sp.interest;m.loan.out-=sp.principal;m.loan.arrears=Math.max(0,m.loan.arrears-(sp.interest+sp.principal));if(m.loan.arrears===0)m.loan.overdue=0;if(x.a>=m.loan.emi)m.loan.paid=Math.min(m.loan.total,m.loan.paid+1);
+      lines+=`<dt>Loan installment</dt><dd>${fmt(x.a)}</dd><dt>Interest / principal</dt><dd>${fmt(sp.interest+sp.penalty)} / ${fmt(sp.principal)}</dd><dt>Loan outstanding</dt><dd>${fmt(m.loan.out)}</dd>`;sms.push(`Kista ${fmt(x.a)}, baki rin ${fmt(m.loan.out)}`);}
+    else {lines+=`<dt>Status</dt><dd>Pending branch approval</dd>`;sms.push(`FD ${fmt(x.a)} (sakha swikriti baki)`);}
+    S.entries.push({rno:r,member:m.no,product:x.p,amount:x.a,collector:'C01',time,synced:S.online,reversed:false,today:true});
+  });
+  save();
+  openSheet(`<div class="slip enter">
+      <div class="coop">Shree Gaurishankar Bachat tatha Rin Sahakari Ltd.</div>
+      <span class="stamp ${S.online?'':'q'}">${S.online?'SENT':'QUEUED'}</span>
+      <div class="big">${fmt(amount)}</div>
+      <div class="what">${LABEL[product]}</div>
+      <dl><dt>Member</dt><dd>${esc(m.name)} (${m.no})</dd><dt>Receipt no.</dt><dd>${rno}</dd>${lines}<dt>Collector</dt><dd>${esc(c.name)}</dd><dt>Date</dt><dd>${BS_TODAY}, ${time.replace('Today ','')}</dd></dl>
+    </div>
+    <div class="sms"><small>SMS to ${esc(m.phone)} ${S.online?'· delivered':'· will send on sync'}</small>${m.no}: ${fmt(amount)} jamma bhayo. ${sms.join('. ')}. Rasid ${rno}. Sankalak: ${esc(c.name)}. Galat bhaye 01-5XXXXXX ma phone garnuhos.</div>
+    <div class="row" style="gap:8px"><button class="btn" style="flex:1" id="print">Print slip</button><button class="btn dark" style="flex:1" id="next">Next member</button></div>`);
+  $('#print').onclick=()=>toast('Sent to Bluetooth printer (demo)');
+  $('#next').onclick=()=>{closeSheet();renderCollector();};
+  renderCollector();
+}
+
+function closeDaySheet(){
+  const ents=todayEntries('C01'); const by={};ents.forEach(e=>by[e.product]=(by[e.product]||0)+e.amount);
+  const expected=ents.reduce((a,e)=>a+e.amount,0); const denoms=[1000,500,100,50,20,10,5]; const cnt={};
+  const pending=S.entries.filter(e=>e.collector==='C01'&&!e.synced).length;
+  function counted(){return denoms.reduce((a,d)=>a+d*(cnt[d]||0),0);}
+  openSheet(`<div class="row between"><h1 style="font-size:22px">Close day</h1><button class="btn ghost" id="x" aria-label="Close">✕</button></div>
+    <p class="sub">${BS_TODAY} · ${ents.length} collections</p>
+    <div class="preview">${Object.keys(by).map(p=>`<div class="row between"><span>${PRODUCTS[p]}</span><span>${fmt(by[p])}</span></div>`).join('')}<div class="row between" style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px"><b>Cash expected</b><b>${fmt(expected)}</b></div></div>
+    ${pending?`<p class="small" style="color:var(--warn)">${pending} entries are still on this phone. Go online and sync before closing.</p>`:''}
+    <h3>Count your cash</h3>
+    <div class="denoms">${denoms.map(d=>`<span>Rs. ${d} notes</span><input inputmode="numeric" data-d="${d}" aria-label="Number of Rs. ${d} notes"><span class="muted small" id="s${d}">—</span>`).join('')}</div>
+    <div class="preview" id="var"></div>
+    <button class="btn primary block" id="submit" disabled>Submit to branch</button>`);
+  $('#x').onclick=closeSheet;
+  function upd(){const c=counted();const v=c-expected;$('#var').innerHTML=`<div class="row between"><span>Counted</span><b>${fmt(c)}</b></div><div class="row between"><span>Difference</span><b style="color:${v===0?'var(--ok)':'var(--crimson)'}">${v===0?'Matches':(v>0?'+':'−')+fmt(Math.abs(v)).replace('Rs. ','Rs. ')}</b></div>${v!==0&&c>0?'<div class="small muted">A difference will be flagged for the branch admin with your note.</div>':''}`;$('#submit').disabled=c===0||pending>0;}
+  document.querySelectorAll('.denoms input').forEach(i=>i.oninput=()=>{cnt[i.dataset.d]=parseInt(i.value)||0;$('#s'+i.dataset.d).textContent=cnt[i.dataset.d]?fmt(cnt[i.dataset.d]*i.dataset.d):'—';upd();});
+  upd();
+  $('#submit').onclick=()=>{const c=counted();S.closes.unshift({collector:'C01',date:BS_TODAY,expected,received:c,status:'Pending',note:c===expected?'':'Difference reported at day close'});coll('C01').closed=true;save();closeSheet();renderCollector();toast('Day close submitted to branch');};
+}
+
+/* ---------- MEMBER ---------- */
+function renderMember(){
+  const m=member(S.viewMember); const mine=S.entries.filter(e=>e.member===m.no).slice().reverse();
+  app.innerHTML=`<div class="phone">
+    <label class="small muted">Viewing as (demo) <select id="who" class="search" style="margin-top:4px">${S.members.map(x=>`<option value="${x.no}" ${x.no===m.no?'selected':''}>${esc(x.name)} · ${TYPES[x.type]} · ${x.no}</option>`).join('')}</select></label>
+    ${m.type==='LOAN'?`<div class="balance-hero" style="margin-top:14px"><span class="muted small">Loan outstanding · loan account holder</span><b>${fmt(m.loan.out)}</b><span class="muted small">${m.no} · ${m.loan.paid} of ${m.loan.total} installments paid · collector ${esc((coll(m.route)||{}).name||'—')}</span><div class="cash-bar" style="margin-top:10px;background:transparent;border-color:rgba(255,255,255,.3)"><i style="width:${m.loan.paid/m.loan.total*100}%;background:var(--ok)"></i></div></div>
+    <div class="acc-grid">
+      <div class="acc"><span class="muted small">${m.loan.overdue?'Overdue now':'Next installment'}</span><b>${fmt(m.loan.overdue?m.loan.arrears:m.loan.emi)}</b><span class="small ${m.loan.overdue?'':'muted'}" style="${m.loan.overdue?'color:var(--crimson)':''}">${m.loan.overdue?m.loan.overdue+' days late · penalty grows daily':FREQ[m.loan.freq]+' · on time'}</span></div>
+      <div class="acc"><span class="muted small">Interest + penalty due</span><b>${fmt(m.loan.interest+m.loan.penalty)}</b><span class="small muted">Paid first from each installment</span></div>
+      <div class="acc"><span class="muted small">Loan amount</span><b>${fmt(m.loan.amount)}</b><span class="small muted">Repaid ${fmt(m.loan.amount-m.loan.out)}</span></div>
+      <div class="acc"><span class="muted small">Compulsory savings</span><b>${fmt(m.csav.bal)}</b><span class="small muted">${fmt(m.csav.inst)} per visit · locked until loan repaid</span></div>
+    </div>`:`<div class="balance-hero" style="margin-top:14px"><span class="muted small">Savings balance · saving account holder</span><b>${fmt(m.sav)}</b><span class="muted small">${m.no} · covered by the Deposit and Credit Protection Fund</span></div>
+    <div class="acc-grid">
+      ${m.rd?`<div class="acc"><span class="muted small">Recurring deposit</span><b>${fmt(m.rd.bal)}</b><span class="small muted">${fmt(m.rd.inst)} / month ${m.rd.due?'· due now':''}</span></div>`:''}
+      <div class="acc"><span class="muted small">Your collector</span><b style="font-size:16px">${esc((coll(m.route)||{}).name||'—')}</b><span class="small muted">Visits daily</span></div>
+    </div>`}
+    <div style="margin-top:12px"><button class="btn dark block" id="pay">${m.type==='LOAN'?'Pay installment online':'Deposit online'}</button></div>
+    <h2>Receipts</h2>
+    <p class="sub">Every rupee you hand over should appear here within a minute. If one is missing, tell us.</p>
+    <div class="panel">${mine.length?`<ul class="list">${mine.map(e=>`<li><div class="row between"><span><b>${fmt(e.amount)}</b> · ${PRODUCTS[e.product]}<br><span class="muted small">${e.rno} · ${e.collector?esc(coll(e.collector).name):'Branch'} · ${e.time}</span></span>${e.reversed?'<span class="pill bad">Reversed</span>':e.synced?'<span class="pill ok">Confirmed</span>':'<span class="pill warn">Syncing</span>'}</div><button class="linkbtn small" data-r="${e.rno}">Report a problem</button></li>`).join('')}</ul>`:'<p class="muted" style="margin:0">No receipts yet. Your first collection will show up here.</p>'}</div>
+    <div class="panel" style="margin-top:12px"><b>Paid cash but no receipt?</b><p class="small muted" style="margin:4px 0 8px">This goes straight to the branch manager, not to your collector.</p><button class="btn" data-r="none">Report a missing receipt</button></div>
+  </div>`;
+  $('#who').onchange=e=>{S.viewMember=e.target.value;save();renderMember();};
+  $('#pay').onclick=()=>toast('Opens the wallet / ConnectIPS checkout (demo)');
+  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{S.tickets.push({member:m.no,rno:b.dataset.r,at:'Today'});save();toast('Report sent to the branch manager');});
+}
+
+/* ---------- ADMIN ---------- */
+let afilt='ALL';
+function renderAdmin(){
+  const today=S.entries.filter(e=>e.today&&!e.reversed); const savT=today.filter(e=>e.product!=='LOAN').reduce((a,e)=>a+e.amount,0); const loanT=today.filter(e=>e.product==='LOAN').reduce((a,e)=>a+e.amount,0);
+  const nSav=S.members.filter(m=>m.type==='SAV').length, nLoan=S.members.filter(m=>m.type==='LOAN').length;
+  const unsynced=S.entries.filter(e=>!e.synced).length; const pend=S.closes.filter(c=>c.status==='Pending');
+  const exceptions=[];
+  S.closes.filter(c=>c.status==='Pending'&&c.received!==c.expected).forEach(c=>exceptions.push(`<b>${esc(coll(c.collector).name)}</b> day close is ${fmt(Math.abs(c.received-c.expected))} ${c.received<c.expected?'short':'over'}`));
+  if(unsynced)exceptions.push(`<b>${unsynced}</b> entries collected offline and not yet synced`);
+  S.members.filter(m=>m.loan&&m.loan.overdue).forEach(m=>exceptions.push(`<b>${esc(m.name)}</b> loan ${m.loan.overdue} days overdue · ${fmt(m.loan.arrears)} due + ${fmt(m.loan.penalty)} penalty`));
+  S.tickets.forEach(t=>exceptions.push(`Member <b>${t.member}</b> reported a problem${t.rno!=='none'?' with '+t.rno:' (missing receipt)'}`));
+  app.innerHTML=`<h1>Branch overview</h1><p class="sub">${BS_TODAY} · Main branch</p>
+    <div class="admin-grid">
+      <div class="panel stat"><b>${fmt(savT)}</b><span>Savings collected today · ${nSav} saving holders</span></div>
+      <div class="panel stat"><b>${fmt(loanT)}</b><span>Loan recovered today · ${nLoan} loan holders</span></div>
+      <div class="panel stat"><b>${unsynced}</b><span>Waiting to sync</span></div>
+      <div class="panel stat"><b>${pend.length}</b><span>Day closes to approve</span></div>
+    </div>
+    <div class="two">
+      <div>
+        <div class="panel"><h3>Day close approvals</h3><div class="tablewrap"><table><thead><tr><th>Collector</th><th class="num">Expected</th><th class="num">Received</th><th>Status</th><th></th></tr></thead><tbody>
+          ${S.closes.map((c,i)=>{const v=c.received-c.expected;return `<tr><td><b>${esc(coll(c.collector).name)}</b><br><span class="muted small">${c.note?esc(c.note):c.date}</span></td><td class="num">${fmt(c.expected)}</td><td class="num">${fmt(c.received)}${v?`<br><span class="small" style="color:var(--crimson)">${v>0?'+':'−'}${fmt(Math.abs(v))}</span>`:''}</td><td>${c.status==='Pending'?'<span class="pill warn">Pending</span>':'<span class="pill ok">Approved</span>'}</td><td>${c.status==='Pending'?`<button class="btn" data-ap="${i}">Approve</button>`:''}</td></tr>`;}).join('')||'<tr><td colspan="5" class="muted">No day closes submitted yet.</td></tr>'}
+        </tbody></table></div></div>
+        <div class="panel" style="margin-top:16px"><h3>Today's entries</h3><p class="small muted" style="margin:0 0 6px">Entries can't be edited. Reverse with a reason; a second admin approves.</p><div class="tablewrap"><table><thead><tr><th>Receipt</th><th>Member</th><th>Product</th><th class="num">Amount</th><th></th></tr></thead><tbody>
+          ${S.entries.filter(e=>e.today).slice().reverse().map(e=>`<tr><td>${e.rno}<br><span class="muted small">${e.collector?esc(coll(e.collector).name):'Branch'} · ${e.time}</span></td><td>${esc(member(e.member).name)}</td><td>${PRODUCTS[e.product]}</td><td class="num">${fmt(e.amount)}</td><td>${e.reversed?'<span class="pill bad">Reversal pending</span>':`<button class="btn ghost small" data-rev="${e.rno}">Reverse</button>`}</td></tr>`).join('')||'<tr><td colspan="5" class="muted">No collections yet today.</td></tr>'}
+        </tbody></table></div></div>
+        <div class="panel" style="margin-top:16px"><div class="row between"><h3>Account holders</h3><div class="chips" style="margin:0">${['ALL','SAV','LOAN'].map(t=>`<button class="chip" data-af="${t}" aria-pressed="${afilt===t}">${t==='ALL'?'All':TYPES[t]}</button>`).join('')}</div></div><div class="tablewrap"><table><thead><tr><th>Member</th><th>Type</th><th class="num">Balance / outstanding</th><th>Status</th><th>Collector</th></tr></thead><tbody>
+          ${S.members.filter(m=>afilt==='ALL'||m.type===afilt).map(m=>`<tr><td><b>${esc(m.name)}</b><br><span class="muted small">${m.no}</span></td><td><span class="pill ${m.type==='SAV'?'ok':''}">${TYPES[m.type]}</span></td><td class="num">${m.type==='LOAN'?fmt(m.loan.out)+'<br><span class="muted small">of '+fmt(m.loan.amount)+' · CS '+fmt(m.csav.bal)+'</span>':fmt(m.sav)}</td><td class="small">${m.type==='LOAN'?(m.loan.overdue?'<span class="pill bad">'+m.loan.overdue+' days overdue</span>':m.loan.paid+'/'+m.loan.total+' paid'):(m.rd?'RD '+fmt(m.rd.bal):'Savings only')}</td><td class="small">${esc((coll(m.route)||{}).name||'—')}</td></tr>`).join('')}
+        </tbody></table></div></div>
+        <div class="panel" style="margin-top:16px"><div class="row between"><h3>Interest and penalties</h3><span class="small muted">Nightly job, 01:00</span></div>
+          ${(()=>{const L=S.members.filter(m=>m.loan);const i=L.reduce((a,m)=>a+m.loan.interest,0),p=L.reduce((a,m)=>a+m.loan.penalty,0),ar=L.reduce((a,m)=>a+m.loan.arrears,0);return `<div class="admin-grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:8px 0 12px"><div class="stat"><b style="font-size:19px">${fmt(i)}</b><span>Loan interest due</span></div><div class="stat"><b style="font-size:19px">${fmt(p)}</b><span>Penalty due</span></div><div class="stat"><b style="font-size:19px">${fmt(ar)}</b><span>Installments overdue</span></div><div class="stat"><b style="font-size:19px">${fmt(S.accr.savPending)}</b><span>Savings interest not yet credited</span></div></div>`;})()}
+          <div class="tablewrap"><table><thead><tr><th>Night</th><th class="num">Loan interest</th><th class="num">Penalty</th><th class="num">Savings interest</th></tr></thead><tbody>
+          ${S.accr.runs.slice().reverse().map(r=>`<tr><td>${r.label}</td><td class="num">${fmt(r.i)}</td><td class="num">${fmt(r.p)}</td><td class="num">Rs. ${r.s.toFixed(2)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">No nightly runs in this demo yet. Press the button to simulate one.</td></tr>'}
+          </tbody></table></div>
+          <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn" id="accrue">Simulate tonight's run</button><button class="btn primary" id="credit" ${S.accr.savPending>=0.01?'':'disabled'}>Credit savings interest to members</button></div>
+          <p class="small muted" style="margin:8px 0 0">Loan interest = outstanding × 14% ÷ 365 a day. Penalty = overdue amount × 2% ÷ 365 a day (placeholder rate). Savings earn 6% a year, credited when you post it.</p>
+        </div>
+        <div class="panel" style="margin-top:16px"><h3>Collectors</h3><div class="tablewrap"><table><thead><tr><th>Name</th><th>Route</th><th>Device</th><th class="num">Cash in hand</th></tr></thead><tbody>
+          ${S.collectors.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${esc(c.route)}</td><td class="small">${esc(c.device)}</td><td class="num">${fmt(cashInHand(c.id))}</td></tr>`).join('')}
+        </tbody></table></div></div>
+      </div>
+      <div>
+        <div class="panel"><h3>Needs attention</h3>${exceptions.length?`<ul class="list">${exceptions.map(x=>`<li class="small">${x}</li>`).join('')}</ul>`:'<p class="muted small" style="margin:0">Nothing flagged. All entries synced and day closes match.</p>'}</div>
+        <div class="panel" style="margin-top:16px"><h3>Add member</h3><p class="small muted" style="margin:0 0 8px">Goes to a second admin for KYC check before the account opens.</p>
+          <div class="form">
+            <label>Full name<input id="nm" placeholder="As on citizenship certificate"></label>
+            <label>Account type<select id="ty"><option value="SAV">Saving account holder</option><option value="LOAN">Loan account holder</option></select></label>
+            <label>Mobile number<input id="ph" inputmode="tel" placeholder="98XXXXXXXX"></label>
+            <label>Citizenship no.<input id="cz" placeholder="e.g. 27-01-75-01234"></label>
+            <label>Route<select id="rt">${S.collectors.map(c=>`<option value="${c.id}">${esc(c.route)} — ${esc(c.name)}</option>`).join('')}</select></label>
+            <label id="dlw">Usual daily amount (Rs.)<input id="dl" inputmode="numeric" value="200"></label>
+            <div id="loanf" class="form" style="display:none"><label>Loan amount (Rs.)<input id="la" inputmode="numeric" value="100000"></label><label>Installment (Rs.)<input id="le" inputmode="numeric" value="5000"></label><label>Number of installments<input id="ln" inputmode="numeric" value="24"></label><label>Compulsory saving per visit (Rs.)<input id="lc" inputmode="numeric" value="500"></label><p class="small muted" style="margin:0">Opens a compulsory savings account with the loan. Loan goes to the credit committee and disburses only after 3 months of membership.</p></div>
+            <button class="btn primary" id="add">Send for KYC approval</button>
+          </div></div>
+      </div>
+    </div>`;
+  $('#accrue').onclick=()=>{
+    let i=0,p=0,sv=0;
+    S.members.forEach(m=>{
+      if(m.loan&&m.loan.out>0){const di=Math.round(m.loan.out*m.loan.rate/100/365*100)/100;m.loan.interest=Math.round((m.loan.interest+di)*100)/100;i+=di;
+        if(m.loan.arrears>0){const dp=Math.round(m.loan.arrears*2/100/365*100)/100;m.loan.penalty=Math.round((m.loan.penalty+dp)*100)/100;p+=dp;m.loan.overdue+=1;}}
+      const bal=(m.sav||0)+(m.csav?m.csav.bal:0)+(m.rd?m.rd.bal:0);sv+=bal*6/100/365;
+    });
+    S.accr.savPending+=sv; S.accr.runs.push({label:'Night '+(S.accr.runs.length+1),i,p,s:sv}); save(); renderAdmin(); toast(`Accrued ${fmt(i)} loan interest and ${fmt(p)} penalty`);
+  };
+  $('#credit').onclick=()=>{
+    let total=0;
+    S.members.forEach(m=>{const bal=(m.sav||0)+(m.csav?m.csav.bal:0)+(m.rd?m.rd.bal:0);if(!bal)return;
+      const share=Math.round(S.accr.savPending*bal/S.members.reduce((a,x)=>a+(x.sav||0)+(x.csav?x.csav.bal:0)+(x.rd?x.rd.bal:0),0)*100)/100;if(share<0.01)return;
+      if(m.type==='LOAN')m.csav.bal+=share;else m.sav+=share;total+=share;
+      S.entries.push({rno:'INT-'+Date.now().toString(36).toUpperCase()+'-'+m.no.slice(2),member:m.no,product:'INTEREST',amount:share,collector:null,time:'Just now',synced:true,reversed:false});});
+    S.accr.savPending=0; save(); renderAdmin(); toast(`Credited ${fmt(total)} interest; members get an SMS`);
+  };
+  document.querySelectorAll('[data-af]').forEach(b=>b.onclick=()=>{afilt=b.dataset.af;renderAdmin();});
+  document.querySelectorAll('[data-ap]').forEach(b=>b.onclick=()=>{const c=S.closes[+b.dataset.ap];c.status='Approved';save();renderAdmin();toast(`Approved ${coll(c.collector).name}'s day close`);});
+  document.querySelectorAll('[data-rev]').forEach(b=>b.onclick=()=>{
+    const e=S.entries.find(x=>x.rno===b.dataset.rev);
+    openSheet(`<h1 style="font-size:22px">Reverse ${e.rno}</h1><p class="sub">${fmt(e.amount)} · ${esc(member(e.member).name)}. The original entry stays on record; a reversal entry is added after a second admin approves.</p>
+      <div class="form"><label>Reason<select id="why"><option>Wrong member</option><option>Wrong amount</option><option>Duplicate entry</option><option>Cash not received</option></select></label>
+      <div class="row" style="gap:8px"><button class="btn" style="flex:1" id="cn">Cancel</button><button class="btn primary" style="flex:1" id="go">Request reversal</button></div></div>`);
+    $('#cn').onclick=closeSheet; $('#go').onclick=()=>{e.reversed=true;save();closeSheet();renderAdmin();toast('Reversal sent for second approval');};
+  });
+  $('#ty').onchange=()=>{const L=$('#ty').value==='LOAN';$('#loanf').style.display=L?'grid':'none';$('#dlw').style.display=L?'none':'grid';};
+  $('#add').onclick=()=>{
+    const nm=$('#nm').value.trim(),ph=$('#ph').value.trim(),cz=$('#cz').value.trim();
+    if(!nm||!/^9[78]\d{8}$/.test(ph)||!cz){toast('Enter a name, a 10-digit mobile number starting 97/98, and the citizenship number');return;}
+    const no='M-'+(1100+S.members.length);
+    const ty=$('#ty').value; let csav=null, loan=null, daily=parseInt($('#dl').value)||200;
+    if(ty==='LOAN'){const la=parseInt($('#la').value)||0,le=parseInt($('#le').value)||0,ln=parseInt($('#ln').value)||0,lc=parseInt($('#lc').value)||0;if(!la||!le||!ln||!lc){toast('Enter loan amount, installment, number of installments and compulsory saving');return;}loan={amount:la,out:la,interest:0,penalty:0,emi:le,overdue:0,paid:0,total:ln};csav={bal:0,inst:lc,due:false};daily=le;}
+    S.members.push({no,type:ty,name:nm,biz:'New member',phone:ph.slice(0,2)+'XXXXX'+ph.slice(-3),route:$('#rt').value,sav:0,loan,csav,rd:null,daily});
+    save();renderAdmin();toast(`${nm} added as ${TYPES[ty].toLowerCase()} holder ${no} — pending KYC approval`);
+  };
+}
+
+render();
+})();
+</script>
+</body>
+</html>
